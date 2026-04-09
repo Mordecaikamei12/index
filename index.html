@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morde Kamei Shop | Full VAC Project Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00a884;
+            --dark: #0f172a;
+            --slate: #64748b;
+            --bg: #f8fafc;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
+
+        /* Banner & Header */
+        .vac-banner { background: var(--dark); color: #94a3b8; text-align: center; padding: 12px; font-size: 0.7rem; letter-spacing: 3px; font-weight: 700; text-transform: uppercase; }
+        header { 
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); padding: 1rem 5%; 
+            display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #e2e8f0; 
+        }
+        .logo { font-size: 1.5rem; font-weight: 800; }
+        .logo span { color: var(--primary); }
+
+        /* Welcome Section */
+        .hero { text-align: center; padding: 60px 5% 20px; }
+        .hero h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 10px; }
+
+        /* Grid */
+        .container { padding: 40px 5%; max-width: 1400px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+
+        /* Product Cards */
+        .card { 
+            background: white; border-radius: 24px; padding: 24px; border: 1px solid #f1f5f9; 
+            transition: var(--transition); display: flex; flex-direction: column; 
+        }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 200px; object-fit: contain; cursor: zoom-in; margin-bottom: 15px; border-radius: 12px; }
+        .card h3 { font-size: 1.1rem; margin-bottom: 8px; font-weight: 700; }
+        .price { font-size: 1.4rem; font-weight: 800; margin-bottom: 20px; display: block; }
+
+        /* Buttons */
+        .btn { padding: 14px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; transition: var(--transition); width: 100%; }
+        .btn-add { background: #f1f5f9; color: var(--dark); }
+        .btn-add:hover { background: var(--dark); color: white; }
+        .btn-go { background: var(--primary); color: white; display: none; }
+
+        /* Modal / Specs Overlay */
+        .modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); 
+            display: none; align-items: center; justify-content: center; z-index: 2000; 
+        }
+        .modal-content { 
+            background: white; width: 90%; max-width: 850px; border-radius: 32px; 
+            display: grid; grid-template-columns: 1fr 1.2fr; overflow: hidden; animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-left { background: #f8fafc; padding: 40px; display: flex; align-items: center; justify-content: center; }
+        .modal-right { padding: 40px; overflow-y: auto; max-height: 80vh; }
+        .spec-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem; }
+        .spec-table tr { border-bottom: 1px solid #f1f5f9; }
+        .spec-table td { padding: 12px 0; }
+        .label { color: var(--slate); font-weight: 600; width: 45%; }
+
+        /* Cart Drawer */
+        .drawer { 
+            position: fixed; top: 0; right: -100%; width: 400px; height: 100%; 
+            background: white; z-index: 3000; transition: var(--transition); padding: 40px; 
+            box-shadow: -20px 0 60px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+        }
+        .drawer.open { right: 0; }
+
+        /* Footer */
+        footer { background: white; padding: 80px 5%; margin-top: 80px; border-top: 1px solid #f1f5f9; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; }
+        .footer-col h4 { color: var(--primary); margin-bottom: 20px; font-size: 1.1rem; text-transform: uppercase; }
+        .footer-col p { color: var(--slate); line-height: 1.7; font-size: 0.95rem; }
+
+        @media (max-width: 800px) { .modal-content { grid-template-columns: 1fr; } .modal-left { display: none; } .drawer { width: 100%; } }
+    </style>
+</head>
+<body>
+
+<div class="vac-banner">VAC Development Project | Hardware Registry 2026</div>
+
+<header>
+    <div class="logo">Morde Kamei<span>.</span></div>
+    <button onclick="toggleCart()" style="background:var(--dark); color:white; border:none; padding:10px 22px; border-radius:50px; font-weight:600; cursor:pointer;">
+        🛒 Bag (<span id="count">0</span>)
+    </button>
+</header>
+
+<div class="hero">
+    <h1>Welcome to <span>Morde Kamei Shop</span></h1>
+    <p>Premium hardware node for the VAC Development Project.</p>
+</div>
+
+<div class="container">
+    <div class="grid" id="grid"></div>
+</div>
+
+<div class="modal" id="modal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-left" id="m-img"></div>
+        <div class="modal-right">
+            <h2 id="m-name" style="margin:0"></h2>
+            <p id="m-desc" style="color:var(--slate); margin-top:10px;"></p>
+            <h4 style="margin-top:30px; border-top: 1px solid #eee; padding-top:20px;">Technical Specifications</h4>
+            <table class="spec-table" id="m-specs"></table>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:30px;">
+                <span id="m-price" style="font-size:1.8rem; font-weight:800;"></span>
+                <button class="btn btn-add" id="m-btn-add" style="background:var(--dark); color:white; width:140px;">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="drawer" id="drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+        <h2 style="margin:0">Your Bag</h2>
+        <button onclick="toggleCart()" style="background:none; border:none; font-size:2rem; cursor:pointer;">&times;</button>
+    </div>
+    <div id="cart-items" style="flex-grow:1; overflow-y:auto;"></div>
+    <div style="border-top:1px solid #eee; padding-top:30px;">
+        <div style="display:flex; justify-content:space-between; font-size:1.5rem; font-weight:800; margin-bottom:20px;">
+            <span>Total</span><span id="total-price">$0.00</span>
+        </div>
+        <button class="btn" style="background:var(--primary); color:white;" onclick="placeOrder()">Place Order</button>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h4>About the Node</h4>
+            <p>Morde Kamei Shop is the primary hardware distributor for the VAC Development Project. Every component is verified for the 2026 technical stack.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Quality Protocol</h4>
+            <p>100% authenticated. We offer worldwide express shipping, 24/7 technical priority support, and a lifetime warranty on all series electronics.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Support Hub</h4>
+            <p><strong>Registry:</strong> 2026-VAC-01<br><strong>Comms:</strong> terminal@mordekamei.shop<br><strong>Location:</strong> District 2026 Hub</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    const products = [
+        { id: 1, name: "Aero Buds Pro", price: 89.99, img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500", desc: "Crystal clear audio for the VAC audio protocol.", specs: {"Battery": "30h", "ANC": "45dB", "Link": "BT 5.4"} },
+        { id: 2, name: "Elite Smart Hub", price: 199.50, img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500", desc: "Secure central node for smart environments.", specs: {"Display": "OLED", "Health": "Verified", "OS": "VAC Core"} },
+        { id: 3, name: "Terra Bass Speaker", price: 55.00, img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500", desc: "High-density sound in a rugged frame.", specs: {"Power": "25W", "Driver": "Titanium", "Play": "18h"} },
+        { id: 4, name: "Precision Mouse Pro", price: 42.00, img: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500", desc: "Zero-latency tracking for VAC workstations.", specs: {"DPI": "26,000", "Weight": "58g", "Switches": "Optical"} },
+        { id: 5, name: "Quantum VR Headset", price: 349.99, img: "https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=500", desc: "Immersive hardware for the 2026 metaverse.", specs: {"Resolution": "8K", "FOV": "115°", "Refresh": "144Hz"} },
+        { id: 6, name: "Mechanical Keyboard", price: 120.00, img: "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=500", desc: "Tactile feedback for high-speed development.", specs: {"Switch": "VAC Silver", "Hot-Swap": "Yes", "Build": "Alloy"} },
+        { id: 7, name: "VAC-1 Pro Camera", price: 899.00, img: "https://images.pexels.com/photos/51383/photo-camera-subject-photographer-51383.jpeg?w=500", desc: "Professional imaging for verified creators.", specs: {"Sensor": "45MP", "Video": "8K Raw", "ISO": "100-51k"} },
+        { id: 8, name: "USB-C Ultra Dock", price: 35.00, img: "https://images.pexels.com/photos/400678/pexels-photo-400678.jpeg?w=500", desc: "Full-speed expansion for VAC terminals.", specs: {"Ports": "10-in-1", "PD": "100W", "Video": "Dual 4K"} },
+        { id: 9, name: "Smart Mesh Node", price: 189.99, img: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=500", desc: "Seamless high-speed coverage for facilities.", specs: {"Standard": "WiFi 7", "Range": "5000sqft", "Antenna": "8 Beam"} },
+        { id: 10, name: "Titan Drone 4K", price: 599.00, img: "https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=500", desc: "Autonomous surveillance for the VAC Project.", specs: {"Flight": "40m", "Range": "12km", "Gimbal": "3-Axis"} }
+    ];
+
+    let cart = [];
+    function render() {
+        document.getElementById('grid').innerHTML = products.map(p => `
+            <div class="card">
+                <img src="${p.img}" onclick="openSpecs(${p.id})">
+                <h3>${p.name}</h3>
+                <span class="price">$${p.price.toFixed(2)}</span>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-add" id="add-${p.id}" onclick="add(${p.id})">Add to Cart</button>
+                    <button class="btn btn-go" id="go-${p.id}" onclick="toggleCart()">Go to Cart →</button>
+                </div>
+            </div>`).join('');
+    }
+
+    function openSpecs(id) {
+        const p = products.find(x => x.id === id);
+        document.getElementById('m-name').innerText = p.name;
+        document.getElementById('m-desc').innerText = p.desc;
+        document.getElementById('m-price').innerText = `$${p.price.toFixed(2)}`;
+        document.getElementById('m-img').innerHTML = `<img src="${p.img}" style="max-width:100%">`;
+        document.getElementById('m-specs').innerHTML = Object.entries(p.specs).map(([k,v]) => `<tr><td class="label">${k}</td><td>${v}</td></tr>`).join('');
+        document.getElementById('m-btn-add').onclick = () => { add(p.id); closeModal(); };
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function add(id) {
+        cart.push(products.find(x => x.id === id));
+        updateCart();
+        document.getElementById(`add-${id}`).style.display = 'none';
+        document.getElementById(`go-${id}`).style.display = 'block';
+    }
+
+    function updateCart() {
+        document.getElementById('count').innerText = cart.length;
+        document.getElementById('cart-items').innerHTML = cart.map(item => `
+            <div style="padding:15px; background:#f8fafc; border-radius:12px; margin-bottom:15px; display:flex; justify-content:space-between;">
+                <strong>${item.name}</strong><span>$${item.price.toFixed(2)}</span>
+            </div>`).join('');
+        const total = cart.reduce((s, i) => s + i.price, 0);
+        document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
+    }
+
+    function placeOrder() {
+        if(cart.length === 0) return alert("Your bag is empty.");
+        alert("🚀 Place Order Successfully!\n\nYour Morde Kamei order has been verified and registered with the VAC Development Project.");
+        cart = []; updateCart(); toggleCart(); render();
+    }
+
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    function toggleCart() { document.getElementById('drawer').classList.toggle('open'); }
+    render();
+</script>
+</body>
+</html>
